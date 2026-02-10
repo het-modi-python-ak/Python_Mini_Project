@@ -56,14 +56,14 @@ class TaskManager:
         task = Task(title, description, start_date, due_date, status)
         self.tasks[task.id] = task
         self.save_to_file()
-        print(f":white_check_mark: Task added with ID {task.id}")
+        print(f" Task added with ID {task.id}")
 
     def update_task(self, task_id, **kwargs):
         """Finds a task by ID and applies updates."""
         if task_id in self.tasks:
             self.tasks[task_id].update_task(**kwargs)
             self.save_to_file()
-            print(":white_check_mark: Task updated successfully")
+            print("Task updated successfully")
         else:
             print(":x: Task not found")
 
@@ -72,14 +72,14 @@ class TaskManager:
         if task_id in self.tasks:
             del self.tasks[task_id]
             self.save_to_file()
-            print(":white_check_mark: Task deleted successfully")
+            print("Task deleted successfully")
         else:
             print(":x: Task not found")
 
     def view_tasks(self):
         """Prints all currently stored tasks."""
         if not self.tasks:
-            print(":warning: No tasks available")
+            print("No tasks available")
             return
         for task in self.tasks.values():
             print(task)
@@ -162,8 +162,6 @@ async def reminder_loop(manager):
 # --- ENTRY POINT: USER INTERFACE ---
 async def main():
     manager = TaskManager()
-    loop = asyncio.get_running_loop()
-
     asyncio.create_task(reminder_loop(manager))
     
     while True:
