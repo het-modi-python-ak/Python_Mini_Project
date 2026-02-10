@@ -1,6 +1,7 @@
+import asyncio
 import json
 import os
-
+from datetime import datetime
 # --- CLASS DEFINITION: THE DATA MODEL ---
 class Task:
     # Class-level variable to keep track of the next unique ID
@@ -82,6 +83,13 @@ class TaskManager:
             return
         for task in self.tasks.values():
             print(task)
+            
+    def mark_completed(self, tid):
+        if tid in self.tasks:
+            self.tasks[tid].status = "Completed"
+            self.save_to_file()
+            return True
+        return False
 
     def save_to_file(self):
         """Converts task objects into a dictionary format and writes to a JSON file."""
@@ -123,54 +131,90 @@ class TaskManager:
             Task._id_ct = max(self.tasks.keys()) + 1
 
 
-# --- ENTRY POINT: USER INTERFACE ---
-def main():
-    manager = TaskManager()
+def validate_date(date_text):
+    """Validates date format and ensures it is in the future."""
+    try:
+        date_obj = datetime.strptime(date_text, "%Y-%m-%d %H:%M")
+        if date_obj < datetime.now():
+            return None, "Due date must be in the future!"
+        return date_obj, None
+    except ValueError:
+        return None, "Invalid format! Use YYYY-MM-DD HH:MM"
 
+
+async def reminder_loop(manager):
+    """Prints urgent sorted tasks every 10s without breaking the UI."""
     while True:
-        print("\n--- TASK MANAGER ---")
-        print("1. Add Task")
-        print("2. Update Task")
-        print("3. Delete Task")
-        print("4. View Tasks")
-        print("5. Exit")
+        await asyncio.sleep(10)
+        # Sort pending tasks by due date
+        pending = [t for t in manager.tasks.values() if t.status.lower() != "completed"]
+        pending.sort(key=lambda x: datetime.strptime(x.due_date, "%Y-%m-%d %H:%M"))
 
-        choice = input("Enter choice: ").strip()
+        if pending:
+            # \r\033[K clears the current input line, \033[1;33m is Yellow Bold
+            print(f"\r\033[K\n\033[1;33m{'='*40}\n🔔 URGENT REMINDERS (Sorted by Due Date)\n{'-'*40}")
+            for t in pending[:3]: # Show top 3 most urgent
+                print(f"{t.id} ⚠️ {t.due_date} -> {t.title}")
+            print(f"{'='*40}\033[0m")
+            print("Choice: ", end="", flush=True)
+            
+
+# --- ENTRY POINT: USER INTERFACE ---
+async def main():
+    manager = TaskManager()
+    loop = asyncio.get_running_loop()
+
+    asyncio.create_task(reminder_loop(manager))
+    
+    while True:
+        print("\n\033[1;36m" + "—"*15 + " TASK MANAGER " + "—"*15 + "\033[0m")
+        print(" [1] Add Task      [2] Update Task")
+        print(" [3] Delete Task   [4] View All")
+        print(" [5] Mark complete [6] Exit")
+
+        choice = await asyncio.to_thread(input,'Choice: ')
 
         # Handle user menu selections
         if choice == "1":
             title = input("Title: ")
             desc = input("Description: ")
-            start = input("Start Date: ")
-            due = input("Due Date: ")
-            status = input("Status (Pending/Completed): ") or "Pending"
-            manager.add_task(title, desc, start, due, status)
+            while True:
+                due_raw = input("Due Date (YYYY-MM-DD HH:MM): ")
+                date_obj, error = validate_date(due_raw)
+                if date_obj:
+                    due = due_raw
+                    break
+                print(f"❌ {error}")
+            
+            start = datetime.now().strftime("%Y-%m-%d %H:%M")
+            manager.add_task(title, desc, start, due)
 
         elif choice == "2":
             try:
-                task_id = int(input("Task ID: "))
-                title = input("New Title (leave blank to skip): ")
-                status = input("New Status (leave blank to skip): ")
-
-                manager.update_task(
-                    task_id,
-                    title=title if title else None,
-                    status=status if status else None
-                )
-            except ValueError:
-                print(":x: Please enter a valid numeric ID")   
+                tid = int(input("Task ID: "))
+                new_title = input("New Title (leave blank): ")
+                new_status = input("New Status (e.g. Done): ")
+                manager.update_task(tid, 
+                    title=new_title if new_title else None, 
+                    status=new_status if new_status else None)
+            except ValueError: print("❌ Enter a numeric ID.")   
 
         elif choice == "3":
             try:
-                task_id = int(input("Task ID: "))
-                manager.delete_task(task_id)
-            except ValueError:
-                print(":x: Please enter a valid numeric ID")
-
+                tid = int(input("Task ID to delete: "))
+                manager.delete_task(tid)
+            except ValueError: print("❌ Invalid ID.")
+        
         elif choice == "4":
             manager.view_tasks()
 
-        elif choice == "5":
+        elif choice =="5":
+            try:
+                tid = int(input("Task ID to Mark as completed: "))
+                manager.mark_completed(tid)
+            except ValueError: print("❌ Invalid ID.")
+            
+        elif choice == "6":
             print(":wave: Exiting Task Manager")
             break
 
@@ -179,4 +223,4 @@ def main():
 
 # Ensure the main function only runs if the script is executed directly
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
