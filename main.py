@@ -5,13 +5,13 @@ from datetime import datetime
 # --- CLASS DEFINITION: THE DATA MODEL ---
 class Task:
     # Class-level variable to keep track of the next unique ID
-    _id_ct = 1
+    task_id_counter = 1
 
     @classmethod
     def generate_id(cls):
         """Increments and returns a unique ID for new tasks."""
-        tsk_id = cls._id_ct
-        cls._id_ct += 1
+        tsk_id = cls.task_id_counter
+        cls.task_id_counter += 1
         return tsk_id
 
     def __init__(self, title, description, start_date, due_date, status="Pending", task_id=None):
@@ -126,9 +126,9 @@ class TaskManager:
             )
             self.tasks[task_id] = task
 
-        # Ensure Task._id_ct is higher than the highest loaded ID
+        # Ensure Task.task_id_counter is higher than the highest loaded ID
         if self.tasks:
-            Task._id_ct = max(self.tasks.keys()) + 1
+            Task.task_id_counter = max(self.tasks.keys()) + 1
 
 
 def validate_date(date_text):
