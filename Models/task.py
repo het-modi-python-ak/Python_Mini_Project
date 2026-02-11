@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from typing import Optional
 
 KOLKATA_TZ = ZoneInfo("Asia/Kolkata")
 
 class Task(BaseModel):
-    id: int
     title:str
     description: str
     start_date: str = Field(default_factory=lambda: datetime.now(tz=KOLKATA_TZ).strftime("%Y-%m-%d"))
