@@ -1,40 +1,26 @@
-class Task:
-    _task_id = 1
+from pydantic import BaseModel, Field, field_validator
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
+KOLKATA_TZ = ZoneInfo("Asia/Kolkata")
+
+class Task(BaseModel):
+    id: int
+    title:str
+    description: str
+    start_date: str = Field(default_factory=lambda: datetime.now(tz=KOLKATA_TZ).strftime("%Y-%m-%d"))
+    due_date: str 
+    status: str = Field(default='Pending') 
+    
+    @field_validator("due_date")
     @classmethod
-    def generate_id(cls):
-        """Increments and returns a unique ID for new tasks."""
-        tsk_id = cls._task_id
-        cls._task_id += 1
-        return tsk_id
+    def due_validator(cls, value):
+        try:
+            due_date_obj = datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            raise ValueError("Invalid format! Use YYYY-MM-DD")
 
-    def __init__(
-        self, title, description, start_date, due_date, status="Pending", task_id=None
-    ):
-        """Initializes a new task instance. Handles both new and loaded tasks."""
-        if task_id is not None:
-            self.id = task_id  # Use existing ID (for loading from file)
-        else:
-            self.id = Task.generate_id()  # Generate new ID (for new tasks)
-
-        self.title = title
-        self.description = description
-        self.start_date = start_date
-        self.due_date = due_date
-        self.status = status
-
-    def update_task(self, **kwargs):
-        """Updates specific attributes dynamically using key-value pairs."""
-        for key, value in kwargs.items():
-            if value is not None and hasattr(self, key):
-                setattr(self, key, value)
-
-    def __str__(self):
-        """Defines how the task looks when printed."""
-        return (
-            f"ID: {self.id} | "
-            f"Title: {self.title} | "
-            f"Status: {self.status} | "
-            f"Start: {self.start_date} | "
-            f"Due: {self.due_date}"
-        )
+        today = datetime.now(tz=KOLKATA_TZ).date()
+        if due_date_obj <= today:
+            raise ValueError("Due date must be in the future!")
+        return value

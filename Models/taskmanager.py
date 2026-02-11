@@ -3,16 +3,23 @@ from utils.file_handler import load_from_file, save_to_file
 
 
 class TaskManager:
+    _id = 0
+    @classmethod
+    def get_id(cls):
+        cls._id = cls._id +1
+        return cls._id
+
     def __init__(self, filename="data/tasks.json"):
         """Sets up the manager and loads existing tasks from disk."""
         self.tasks = {} 
         self.filename = filename
         load_from_file(self.filename,self.tasks)
+        
 
-    def add_task(self, title, description, start_date, due_date, status="Pending"):
+    def add_task(self, title, description, due_date,):
         """Creates a new Task object, stores it, and saves to file."""
-        task = Task(title, description, start_date, due_date, status)
-        self.tasks[task.id] = task
+        task = Task(id = TaskManager.get_id(),title = title, description=description, due_date=due_date)
+        self.tasks[task.id] = task.model_dump(exclude=['id'])
         save_to_file(self.filename,self.tasks)
         print(f" Task added with ID {task.id}")
 

@@ -21,16 +21,8 @@ async def main():
         if choice == "1":
             title = input("Title: ")
             desc = input("Description: ")
-            while True:
-                due_raw = input("Due Date (YYYY-MM-DD HH:MM): ")
-                date_obj, error = validate_date(due_raw)
-                if date_obj:
-                    due = due_raw
-                    break
-                print(f"❌ {error}")
-
-            start = datetime.now().strftime("%Y-%m-%d %H:%M")
-            manager.add_task(title, desc, start, due)
+            due = input("Due date: ")
+            manager.add_task(title, desc, due)
 
         elif choice == "2":
             try:
