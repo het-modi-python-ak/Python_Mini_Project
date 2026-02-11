@@ -2,8 +2,10 @@ import json
 import os
 from models.task import Task
 
-def save_to_file(filename,tasks):
-        """Converts task objects into a dictionary format and writes to a JSON file."""
+
+def save_to_file(filename, tasks):
+    """Converts task objects into a dictionary format and writes to a JSON file."""
+    try:
         data = {}
         for task_id, task in tasks.items():
             data[task_id] = {
@@ -11,15 +13,19 @@ def save_to_file(filename,tasks):
                 "description": task.description,
                 "start_date": task.start_date,
                 "due_date": task.due_date,
-                "status": task.status
+                "status": task.status,
             }
 
         with open(filename, "w") as f:
             json.dump(data, f, indent=4)
+    except Exception as e:
+        print("error saving data")
+
 
 def load_from_file(filename):
-        """Reads the JSON file and reconstructs Task objects."""
-        tasks = {}
+    """Reads the JSON file and reconstructs Task objects."""
+    tasks = {}
+    try:
         if not os.path.exists(filename):
             return
 
@@ -34,10 +40,15 @@ def load_from_file(filename):
                 task_data["start_date"],
                 task_data["due_date"],
                 task_data["status"],
-                task_id=task_id
+                task_id=task_id,
             )
             tasks[task_id] = task
 
         # Ensure Task.task_id_counter is higher than the highest loaded ID
         if tasks:
             Task.task_id_counter = max(tasks.keys()) + 1
+
+    except Exception as e:
+        print("error loading from json")
+
+    return tasks

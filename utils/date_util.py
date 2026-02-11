@@ -9,4 +9,6 @@ def validate_date(date_text):
         return date_obj, None
     except ValueError:
         return None, "Invalid format! Use YYYY-MM-DD HH:MM"
-    
+    except Exception as e:
+        print(f"erro is {e}")
+        

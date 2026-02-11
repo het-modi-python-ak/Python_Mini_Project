@@ -4,7 +4,7 @@ from datetime import datetime
 from models.manager import TaskManager
 # from utils import reminder_loop
 from utils.reminder import reminder_loop
-from utils.utils import validate_date
+from utils.date_util import validate_date
 
 # --- ENTRY POINT: USER INTERFACE ---
 async def main():
