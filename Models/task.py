@@ -5,13 +5,16 @@ from typing import Optional
 
 KOLKATA_TZ = ZoneInfo("Asia/Kolkata")
 
+
 class Task(BaseModel):
-    title:str
+    title: str
     description: str
-    start_date: str = Field(default_factory=lambda: datetime.now(tz=KOLKATA_TZ).strftime("%Y-%m-%d"))
-    due_date: str 
-    status: str = Field(default='Pending') 
-    
+    start_date: str = Field(
+        default_factory=lambda: datetime.now(tz=KOLKATA_TZ).strftime("%Y-%m-%d")
+    )
+    due_date: str
+    status: str = Field(default="Pending")
+
     @field_validator("due_date")
     @classmethod
     def due_validator(cls, value):
@@ -24,3 +27,10 @@ class Task(BaseModel):
         if due_date_obj <= today:
             raise ValueError("Due date must be in the future!")
         return value
+
+
+class UpdateTask(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    due_date: Optional[str] = None
+    status: Optional[str] = None
