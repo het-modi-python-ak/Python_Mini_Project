@@ -1,47 +1,55 @@
-import json
-import os
 from models.task import Task
+from utils.db import get_connection
 
-# Saves tasks to JSON file
-def save_to_file(filename, tasks):
-    data = {}
-    for task_id, task in tasks.items():
-        data[task_id] = {
-            "title": task.title,
-            "description": task.description,
-            "start_date": task.start_date,
-            "due_date": task.due_date,
-            "status": task.status
-        }
+# Saves all tasks into PostgreSQL
+def save_to_db(tasks):
 
-    with open(filename, "w") as f:
-        json.dump(data, f, indent=4)
+    conn = get_connection()
+    cur = conn.cursor()
 
-# Loads tasks from JSON file
-def load_from_file(filename):
+    cur.execute("DELETE FROM tasks")
+
+    for task in tasks.values():
+        cur.execute("""
+            INSERT INTO tasks (id, title, description, start_date, due_date, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (
+            task.id,
+            task.title,
+            task.description,
+            task.start_date,
+            task.due_date,
+            task.status
+        ))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# Loads tasks from PostgreSQL
+def load_from_db():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, title, description, start_date, due_date, status FROM tasks")
+
+    rows = cur.fetchall()
+
     tasks = {}
 
-    if not os.path.exists(filename):
-        return tasks
-
-    with open(filename, "r") as f:
-        data = json.load(f)
-
-    for task_id, task_data in data.items():
-        task_id = int(task_id)
-
+    for row in rows:
         task = Task(
-            task_data["title"],
-            task_data["description"],
-            task_data["start_date"],
-            task_data["due_date"],
-            task_data["status"],
-            task_id=task_id
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5],
+            task_id=row[0]
         )
+        tasks[row[0]] = task
 
-        tasks[task_id] = task
-
-    if tasks:
-        Task.task_id_counter = max(tasks.keys()) + 1
+    cur.close()
+    conn.close()
 
     return tasks

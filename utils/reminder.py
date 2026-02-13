@@ -1,7 +1,6 @@
 import asyncio
 from datetime import datetime
-from utils.date_util import now_ist, IST
-
+from utils.date_util import now_ist,IST
 # Background loop that shows upcoming tasks
 async def reminder_loop(manager):
     while True:
@@ -36,3 +35,5 @@ async def reminder_loop(manager):
 
             print("=" * 40)
             print("Choice: ", end="", flush=True)
+
+print("sndjsn")
