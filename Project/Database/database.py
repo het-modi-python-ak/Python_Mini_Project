@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
-from Data.config import DB_CONFIG
+from Database.config import DB_CONFIG
 import sys
 
 

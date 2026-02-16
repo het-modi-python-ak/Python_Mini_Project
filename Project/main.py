@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
-from Data.database import Database
-from task_manager import TaskManager
+from Database.database import Database
+from Task_manager.task_manager import TaskManager
 from Utils.reminder import reminder_loop
 from Utils.utils import validate_date
 
